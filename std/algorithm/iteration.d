@@ -3784,32 +3784,14 @@ if (is(typeof(binaryFun!pred(r.front, s.front)) : bool)
         enum size_t _unComputed = size_t.max - 1, _atEnd = size_t.max;
         // _frontLength == _atEnd means empty
         size_t _frontLength = _unComputed;
-        static if (isBidirectionalRange!Range)
-            size_t _backLength = _unComputed;
 
         @property auto separatorLength() { return _separator.length; }
 
         void ensureFrontLength()
         {
             if (_frontLength != _unComputed) return;
-            // compute front length
             _frontLength = (_separator.empty) ? 1 :
                            _input.length - find!pred(_input, _separator).length;
-            static if (isBidirectionalRange!Range)
-                if (_frontLength == _input.length) _backLength = _frontLength;
-        }
-
-        void ensureBackLength()
-        {
-            static if (isBidirectionalRange!Range)
-                if (_backLength != _unComputed) return;
-            // compute back length
-            static if (isBidirectionalRange!Range && isBidirectionalRange!Separator)
-            {
-                import std.range : retro;
-                _backLength = _input.length -
-                    find!pred(retro(_input), retro(_separator)).source.length;
-            }
         }
 
     public:
@@ -3847,8 +3829,6 @@ if (is(typeof(binaryFun!pred(r.front, s.front)) : bool)
                 // done, there's no separator in sight
                 _input = _input[_frontLength .. _frontLength];
                 _frontLength = _atEnd;
-                static if (isBidirectionalRange!Range)
-                    _backLength = _atEnd;
                 return;
             }
             if (_frontLength + separatorLength == _input.length)
@@ -3857,8 +3837,6 @@ if (is(typeof(binaryFun!pred(r.front, s.front)) : bool)
                 // an empty item right after this.
                 _input = _input[_input.length .. _input.length];
                 _frontLength = 0;
-                static if (isBidirectionalRange!Range)
-                    _backLength = 0;
                 return;
             }
             // Normal case, pop one item and the separator, get ready for
